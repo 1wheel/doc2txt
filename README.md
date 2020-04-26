@@ -46,10 +46,10 @@ or passed in as an object:
 doc2txt('abc123', {tokenPath: 'my-token.json'})
 ```
 
-- *credpath* Location of the credentials JSON file. Defaults to `process.env.HOME + '/.doc2txt-credentials.json'`
-- *tokenpath* Location of the token JSON file. Defaults to `process.env.HOME + '/.doc2txt-token.json'`
-- *startstr* Text before this in the doc is removed. Defaults to `::start-str::`.
-- *endStr* Text after this in the doc is removed. Defaults to `::end-str::`.
+- _credpath_ Location of the credentials JSON file. Defaults to `process.env.HOME + '/.doc2txt-credentials.json'`
+- _tokenpath_ Location of the token JSON file. Defaults to `process.env.HOME + '/.doc2txt-token.json'`
+- _startstr_ Text before this in the doc is removed. Defaults to `::start-str::`.
+- _endStr_ Text after this in the doc is removed. Defaults to `::end-str::`.
 
 
 
