@@ -43,7 +43,7 @@ doc2txt abc123 --tokenpath my-token.json
 or passed in as an object:
 
 ```js
-doc2txt('abc123', {tokenPath: 'my-token.json'})
+doc2txt('abc123', {tokenpath: 'my-token.json'})
 ```
 
 - **credpath** Location of the credentials JSON file. Defaults to `process.env.HOME + '/.doc2txt-credentials.json'`
