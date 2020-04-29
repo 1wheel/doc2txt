@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/chart-code/doc2txt.git"
+    "url": "git+https://github.com/1wheel/doc2txt.git"
   },
   "author": "",
   "license": "Apache",
@@ -16,9 +16,9 @@
     "doc2txt": "./index.js"
   },
   "bugs": {
-    "url": "https://github.com/chart-code/doc2txt/issues"
+    "url": "https://github.com/1wheel/doc2txt/issues"
   },
-  "homepage": "https://github.com/chart-code/doc2txt",
+  "homepage": "https://github.com/1wheel/doc2txt",
   "dependencies": {
     "googleapis": "^49.0.0",
     "readline": "^1.3.0"
