@@ -49,7 +49,7 @@ doc2txt('abc123', {tokenpath: 'my-token.json'})
 - **credpath** Location of the credentials JSON file. Defaults to `process.env.HOME + '/.doc2txt-credentials.json'`
 - **tokenpath** Location of the token JSON file. Defaults to `process.env.HOME + '/.doc2txt-token.json'`
 - **startstr** Text before this in the doc is removed. Defaults to `::start-str::`.
-- **endStr** Text after this in the doc is removed. Defaults to `::end-str::`.
+- **endstr** Text after this in the doc is removed. Defaults to `::end-str::`.
 
 
 
