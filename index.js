@@ -2,20 +2,20 @@
 
 /* Copyright 2020 Google LLC. All Rights Reserved.
 
-Licensed under the Apache License, Version 2.0 (the "License");
+Licensed under the Apache License, Version 2.0 (the 'License');
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
     http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
+distributed under the License is distributed on an 'AS IS' BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-var { promises: fs } = require("fs");
+var { promises: fs, existsSync, readFileSync, writeFileSync } = require('fs');
 var readline = require('readline');
 var {google} = require('googleapis');
 var {promisify} = require('util');
@@ -24,19 +24,56 @@ var opts = {
   credpath: process.env.HOME + '/.doc2txt-credentials.json',
   tokenpath: process.env.HOME + '/.doc2txt-token.json',
   startstr: '::start-str::',
-  endstr: '::end-str::'
+  endstr: '::end-str::',
+  cachepath: '',
+  fmt: '',
   // docId: '1StMiAtcY6bY6yEIQp5pVSGdIHSnZG-kFspdmsSzAJdE',
 };
 
 module.exports = async function(documentId, opts={}){
-  var auth = await promisify(generateAuth)();
-  var docs = google.docs({version: 'v1', auth});
-  var res = await docs.documents.get({documentId});
+  if (opts.cache && existsSync(opts.cache)){
+    var res = JSON.parse(readFileSync(opts.cache))
+  } else {
+    var auth = await promisify(generateAuth)();
+    var docs = google.docs({version: 'v1', auth});
+    var res = await docs.documents.get({documentId});
+
+    if (opts.cache){
+      writeFileSync(opts.cache, JSON.stringify(res, null, 2))
+    }
+  }
+
+  function extractElement(e){
+    var str = e.textRun.content
+
+    if (opts.fmt != 'md' || !str.trim()) return str
+
+    var {italic, bold, link} = e.textRun.textStyle
+
+    if (!italic && !bold && !link || str == '\n') return str
+
+    var lSpace = ''
+    var rSpace = ''
+    if (str[0] == ' '){
+      lSpace = ' '
+      str = str.slice(1)
+    }
+    if (str[str.length - 1] == ' '){
+      rSpace = ' '
+      str = str.slice(0, -1)
+    }
+
+    if (italic) str = '*' + str + '*'
+    if (bold) str = '**' + str + '**'
+    if (link) str = `[${str}](${link.url})`
+
+    return lSpace + str + rSpace
+  }
 
   var out = res.data.body.content
     .map(d => d.paragraph)
     .filter(d => d)
-    .map(d => d.elements[0].textRun.content)
+    .map(d => d.elements.map(extractElement).join(''))
     .join('')
     .split(opts.endstr)[0]
 
@@ -79,7 +116,7 @@ async function generateAuth(cb){
     return cb(`
       ${e}
       Missing or invalid ${opts.credpath}.
-      Generate JSON with "Enable the Google Docs API" here: 
+      Generate JSON with 'Enable the Google Docs API' here: 
       https://developers.google.com/docs/api/quickstart/nodejs
     `)
   }
