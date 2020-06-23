@@ -15,13 +15,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
+var { promises: fs } = require("fs");
+var readline = require('readline');
+var {google} = require('googleapis');
+var {promisify} = require('util');
 
-const { promises: fs } = require("fs");
-const readline = require('readline');
-const {google} = require('googleapis');
-const {promisify} = require('util');
-
-const opts = {
+var opts = {
   credpath: process.env.HOME + '/.doc2txt-credentials.json',
   tokenpath: process.env.HOME + '/.doc2txt-token.json',
   startstr: '::start-str::',
@@ -29,25 +28,25 @@ const opts = {
   // docId: '1StMiAtcY6bY6yEIQp5pVSGdIHSnZG-kFspdmsSzAJdE',
 };
 
-module.exports = async function(documentId, options={}){
-  const auth = await promisify(generateAuth)();
-  const docs = google.docs({version: 'v1', auth});
-  const res = await docs.documents.get({documentId});
+module.exports = async function(documentId, opts={}){
+  var auth = await promisify(generateAuth)();
+  var docs = google.docs({version: 'v1', auth});
+  var res = await docs.documents.get({documentId});
 
-  const out = res.data.body.content
+  var out = res.data.body.content
     .map(d => d.paragraph)
     .filter(d => d)
     .map(d => d.elements[0].textRun.content)
     .join('')
-    .split(opts.startstr)[0]
-    .split(opts.endstr).slice(-1)[0]
-    .trim();
+    .split(opts.endstr)[0]
+
+  if (out.includes(opts.startstr)) out = out.split(opts.startstr)[1]
+  out = out.trim()
 
   // Write out to opts.outpath if the file has changed
   if (opts.outpath){
-    let prev = '';
     try {
-      prev = await fs.readFile(opts.outpath, 'utf8');
+      var prev = await fs.readFile(opts.outpath, 'utf8');
     } catch (e) {} 
     if (out !== prev){
       await fs.writeFile(opts.outpath, out);
@@ -60,11 +59,11 @@ module.exports = async function(documentId, options={}){
 
 if (require.main === module) runCLI();
 async function runCLI(){
-  const argv = require('minimist')(process.argv.slice(2));
+  var argv = require('minimist')(process.argv.slice(2));
   argv.id = argv.id || argv._[0];
   Object.assign(opts, argv);
 
-  const out = await module.exports(opts.id, opts).catch(console.error);
+  var out = await module.exports(opts.id, opts).catch(console.error);
   if (!opts.outpath) console.log(out);
 }
 
@@ -73,8 +72,8 @@ async function generateAuth(cb){
   // Load client secrets from a local file.
   let oAuth2Client;
   try{
-    const credentials = JSON.parse(await fs.readFile(opts.credpath, 'utf8'));
-    const {client_secret, client_id, redirect_uris} = credentials.installed;
+    var credentials = JSON.parse(await fs.readFile(opts.credpath, 'utf8'));
+    var {client_secret, client_id, redirect_uris} = credentials.installed;
     oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
   } catch(e){
     return cb(`
@@ -87,18 +86,18 @@ async function generateAuth(cb){
 
   try {
     // Check if we have previously stored a token.
-    const token = JSON.parse(await fs.readFile(opts.tokenpath, 'utf8'));
+    var token = JSON.parse(await fs.readFile(opts.tokenpath, 'utf8'));
     oAuth2Client.setCredentials(token)
     cb(null, oAuth2Client);
   } catch (e){
     // If not, download a new token
-    const authUrl = oAuth22Client.generateAuthUrl({
+    var authUrl = oAuth22Client.generateAuthUrl({
       access_type: 'offline',
       scope: ['https://www.googleapis.com/auth/documents.readonly'],
     });
     console.error('Authorize this app by visiting this url:', authUrl);
     
-    const rl = readline.createInterface({
+    var rl = readline.createInterface({
       input: process.stdin,
       output: process.stdout,
     });
