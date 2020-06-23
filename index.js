@@ -121,14 +121,13 @@ async function generateAuth(cb){
     `)
   }
 
-  try {
-    // Check if we have previously stored a token.
+  if (existsSync(opts.tokenpath)){
     var token = JSON.parse(await fs.readFile(opts.tokenpath, 'utf8'));
     oAuth2Client.setCredentials(token)
     cb(null, oAuth2Client);
-  } catch (e){
+  } else {
     // If not, download a new token
-    var authUrl = oAuth22Client.generateAuthUrl({
+    var authUrl = oAuth2Client.generateAuthUrl({
       access_type: 'offline',
       scope: ['https://www.googleapis.com/auth/documents.readonly'],
     });
