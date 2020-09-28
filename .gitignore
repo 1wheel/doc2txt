@@ -1,5 +1,6 @@
 node_modules
 doc.txt
 package-lock.json
+yarn.lock
 
 test/link-fmt.json
