@@ -33,7 +33,7 @@ module.exports = async function(docId, options={}){
   }
 
   var opts = Object.assign(defaultOptions, options)
-
+  if (!opts.fmt && opts.outpath && opts.outpath.includes('.md')) opts.fmt = 'md'
 
   if (opts.cache && existsSync(opts.cache)){
     var res = JSON.parse(readFileSync(opts.cache))
