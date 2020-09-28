@@ -71,6 +71,8 @@ module.exports = async function(docId, options={}){
   return out
 
   function extractElement(e){
+    if (!e.textRun) return ''
+      
     var str = e.textRun.content
 
     if (opts.fmt != 'md' || !str.trim()) return str
