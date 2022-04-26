@@ -73,7 +73,7 @@ module.exports = async function(docId, options={}){
   function extractElement(e){
     if (!e.textRun) return ''
       
-    var str = e.textRun.content
+    var str = e.textRun?.content || ''
 
     if (opts.fmt != 'md' || !str.trim()) return str
 
