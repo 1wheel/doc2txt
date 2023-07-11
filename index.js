@@ -17,9 +17,8 @@ limitations under the License.
 
 var { promises: fs, existsSync, readFileSync, writeFileSync } = require('fs')
 var readline = require('readline')
-var {google} = require('googleapis')
-var {promisify} = require('util')
-
+var authorize = require('./authorize')
+const {google} = require('googleapis')
 
 module.exports = async function(docId, options={}){
   var defaultOptions = {
@@ -38,7 +37,7 @@ module.exports = async function(docId, options={}){
   if (opts.cache && existsSync(opts.cache)){
     var res = JSON.parse(readFileSync(opts.cache))
   } else {
-    var auth = await promisify(generateAuth)()
+    var auth = await authorize(opts)
     var docs = google.docs({version: 'v1', auth})
     var res = await docs.documents.get({documentId: docId || opts.docId})
 
@@ -98,54 +97,6 @@ module.exports = async function(docId, options={}){
 
     return lSpace + str + rSpace
   }
-
-  async function generateAuth(cb){
-    // Load client secrets from a local file.
-    let oAuth2Client
-    try{
-      var credentials = JSON.parse(await fs.readFile(opts.credpath, 'utf8'))
-      var {client_secret, client_id, redirect_uris} = credentials.installed
-      oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0])
-    } catch(e){
-      return cb(`
-        ${e}
-        Missing or invalid ${opts.credpath}.
-        Generate JSON with 'Enable the Google Docs API' here: 
-        https://developers.google.com/docs/api/quickstart/nodejs
-      `)
-    }
-
-    if (existsSync(opts.tokenpath)){
-      var token = JSON.parse(await fs.readFile(opts.tokenpath, 'utf8'))
-      oAuth2Client.setCredentials(token)
-      cb(null, oAuth2Client)
-    } else {
-      // If not, download a new token
-      var authUrl = oAuth2Client.generateAuthUrl({
-        access_type: 'offline',
-        scope: ['https://www.googleapis.com/auth/documents.readonly'],
-      })
-      console.error('Authorize this app by visiting this url:', authUrl)
-      
-      var rl = readline.createInterface({
-        input: process.stdin,
-        output: process.stdout,
-      })
-      rl.question('Enter the code from that page here: ', (code) => {
-        rl.close()
-        oAuth2Client.getToken(code, (err, token) => {
-          if (err) return cb('Error retrieving access token ' +  err)
-          oAuth2Client.setCredentials(token)
-          cb(null, oAuth2Client)
-
-          // Store the token to disk for later program executions
-          fs.writeFile(opts.tokenpath, JSON.stringify(token))
-        })
-      })
-    }
-  }
-
-
 }
 
 if (require.main === module) runCLI()
